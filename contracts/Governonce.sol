@@ -1,49 +1,49 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.9;
 
+import "./IGovernance.sol";
 import "@openzeppelin/contracts/governance/Governor.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
 
-contract Governonce is
+contract Governance is
+    IGovernance,
     Governor,
     GovernorCountingSimple,
     GovernorVotes,
-    GovernorVotesQuorumFraction,
-    AutomationCompatibleInterface
+    GovernorVotesQuorumFraction
 {
-    struct CurrentProposal {
-        uint256 proposalId;
-        uint256 executionTime;
-    }
+    // struct CurrentProposal {
+    //     uint256 proposalId;
+    //     uint256 executionTime;
+    //     address[] targets;
+    //     uint256[] values;
+    //     bytes[] calldatas;
+    //     bytes32 description;
+    // }
 
     address public automation;
 
     CurrentProposal public currentProposal;
 
-    uint256 public executionDelay = 1 hours;
+    uint256 public executionDelay = 1 minutes;
 
     constructor(
         IVotes _token
     )
-        Governor("Governonce")
+        Governor("Governance")
         GovernorVotes(_token)
         GovernorVotesQuorumFraction(4)
     {}
-
-    modifier onlyAutomation() {
-        require(msg.sender == automation);
-        _;
-    }
 
     function votingDelay() public pure override returns (uint256) {
         return 1; // 1 block
     }
 
     function votingPeriod() public pure override returns (uint256) {
-        return 5; // 1 week
+        return 10; // 10 block
     }
 
     // The following functions are overrides required by Solidity.
@@ -65,14 +65,33 @@ contract Governonce is
         bytes[] memory calldatas,
         string memory description
     ) public override returns (uint256) {
+        require(
+            state(currentProposal.proposalId) == ProposalState.Canceled ||
+                state(currentProposal.proposalId) == ProposalState.Defeated ||
+                state(currentProposal.proposalId) == ProposalState.Executed
+        );
         currentProposal.proposalId = super.propose(
             targets,
             values,
             calldatas,
             description
         );
-        currentProposal.executionTime = block.timestamp + executionDelay;
+        currentProposal.description = keccak256(bytes(description));
+        currentProposal.executionTime =
+            block.timestamp +
+            165 seconds +
+            executionDelay;
         return currentProposal.proposalId;
+    }
+
+    function cancel(
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        bytes32 descriptionHash
+    ) public {
+        _cancel(targets, values, calldatas, descriptionHash);
+        delete currentProposal;
     }
 
     function execute(
@@ -80,14 +99,18 @@ contract Governonce is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) public payable override onlyAutomation returns (uint256) {
+    ) public payable override(IGovernance, Governor) returns (uint256) {
         super.execute(targets, values, calldatas, descriptionHash);
         return currentProposal.proposalId;
     }
 
-    function checkUpkeep(
-        bytes calldata checkData
-    ) external override returns (bool upkeepNeeded, bytes memory performData) {}
+    function getCurrentProposal() public view returns (CurrentProposal memory) {
+        return currentProposal;
+    }
 
-    function performUpkeep(bytes calldata performData) external override {}
+    function isReadyToExecution() public view returns (bool) {
+        return
+            (state(currentProposal.proposalId) == ProposalState.Succeeded) ||
+            (state(currentProposal.proposalId) == ProposalState.Queued);
+    }
 }
