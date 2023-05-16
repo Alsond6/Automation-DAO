@@ -3,14 +3,22 @@
 pragma solidity ^0.8.8;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IGovernance.sol";
 
-contract Automation is AutomationCompatibleInterface {
+contract Automation is AutomationCompatibleInterface, Ownable {
     IGovernance public governance;
 
     IGovernance.CurrentProposal public currentProposal;
 
-    constructor(address _governance) {
+    // constructor() {
+
+    // }
+    function setGovernance(address _governance) public onlyOwner {
+        require(
+            address(governance) == address(0),
+            "Governance contract has already set!"
+        );
         governance = IGovernance(_governance);
     }
 

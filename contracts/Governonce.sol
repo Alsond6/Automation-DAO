@@ -15,15 +15,6 @@ contract Governance is
     GovernorVotes,
     GovernorVotesQuorumFraction
 {
-    // struct CurrentProposal {
-    //     uint256 proposalId;
-    //     uint256 executionTime;
-    //     address[] targets;
-    //     uint256[] values;
-    //     bytes[] calldatas;
-    //     bytes32 description;
-    // }
-
     address public automation;
 
     CurrentProposal public currentProposal;
@@ -31,12 +22,25 @@ contract Governance is
     uint256 public executionDelay = 1 minutes;
 
     constructor(
-        IVotes _token
+        IVotes _token,
+        address _automation
     )
         Governor("Governance")
         GovernorVotes(_token)
         GovernorVotesQuorumFraction(4)
-    {}
+    {
+        automation = _automation;
+    }
+
+    modifier onlyAutomation() {
+        require(msg.sender == automation);
+        _;
+    }
+
+    function setAutomation(address _automation) public {
+        require(msg.sender == address(this), "Only governance can access!");
+        automation = _automation;
+    }
 
     function votingDelay() public pure override returns (uint256) {
         return 1; // 1 block
@@ -99,7 +103,13 @@ contract Governance is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) public payable override(IGovernance, Governor) returns (uint256) {
+    )
+        public
+        payable
+        override(IGovernance, Governor)
+        onlyAutomation
+        returns (uint256)
+    {
         super.execute(targets, values, calldatas, descriptionHash);
         return currentProposal.proposalId;
     }
