@@ -11,9 +11,6 @@ contract Automation is AutomationCompatibleInterface, Ownable {
 
     IGovernance.CurrentProposal public currentProposal;
 
-    // constructor() {
-
-    // }
     function setGovernance(address _governance) public onlyOwner {
         require(
             address(governance) == address(0),
