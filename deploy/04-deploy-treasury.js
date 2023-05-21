@@ -7,8 +7,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts()
 
     const governance = await ethers.getContract("Governance")
+    const token = await ethers.getContract("Token")
 
-    const args = [governance.address]
+    const args = [governance.address, token.address]
 
     console.log("Deploying treasury contract...")
 
@@ -29,4 +30,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("Treasury contract was deployed!")
 }
 
-module.exports.tags = ["all", "governance"]
+module.exports.tags = ["all", "treasury"]

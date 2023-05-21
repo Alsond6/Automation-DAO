@@ -23,28 +23,32 @@ contract Automation is AutomationCompatibleInterface, Ownable {
         bytes calldata /* checkData */
     )
         external
+        view
         override
         returns (bool upkeepNeeded, bytes memory /* performData */)
     {
-        currentProposal = governance.getCurrentProposal();
+        uint256 proposalId = governance.getProposalId();
+        uint256 executionTime = governance.getExecutionTime();
         upkeepNeeded =
-            (currentProposal.proposalId != 0) &&
+            (proposalId != 0) &&
             (governance.isReadyToExecution()) &&
-            (currentProposal.executionTime >= block.timestamp);
+            (executionTime <= block.timestamp);
     }
 
     function performUpkeep(bytes calldata /* performData */) external override {
-        currentProposal = governance.getCurrentProposal();
+        uint256 proposalId = governance.getProposalId();
+        uint256 executionTime = governance.getExecutionTime();
         require(
-            (currentProposal.executionTime >= block.timestamp) &&
-                (governance.isReadyToExecution()) &&
-                (currentProposal.executionTime >= block.timestamp)
+            (proposalId != 0) &&
+                (executionTime <= block.timestamp) &&
+                (governance.isReadyToExecution()),
+            "Execution is not ready yet!"
         );
         governance.execute(
-            currentProposal.targets,
-            currentProposal.values,
-            currentProposal.calldatas,
-            currentProposal.description
+            governance.getTargets(),
+            governance.getValues(),
+            governance.getCalldatas(),
+            governance.getDescription()
         );
     }
 }

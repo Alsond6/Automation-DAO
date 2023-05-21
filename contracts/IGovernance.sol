@@ -19,10 +19,17 @@ interface IGovernance {
         bytes32 descriptionHash
     ) external payable returns (uint256);
 
-    function getCurrentProposal()
-        external
-        view
-        returns (CurrentProposal memory);
+    function getProposalId() external view returns (uint256);
+
+    function getExecutionTime() external view returns (uint256);
+
+    function getTargets() external view returns (address[] memory);
+
+    function getValues() external view returns (uint256[] memory);
+
+    function getCalldatas() external view returns (bytes[] memory);
+
+    function getDescription() external view returns (bytes32);
 
     function isReadyToExecution() external view returns (bool);
 }

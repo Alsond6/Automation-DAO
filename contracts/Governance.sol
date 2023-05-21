@@ -33,7 +33,7 @@ contract Governance is
     }
 
     modifier onlyAutomation() {
-        require(msg.sender == automation);
+        require(msg.sender == automation, "Only automation can access!");
         _;
     }
 
@@ -69,22 +69,25 @@ contract Governance is
         bytes[] memory calldatas,
         string memory description
     ) public override returns (uint256) {
-        require(
-            state(currentProposal.proposalId) == ProposalState.Canceled ||
-                state(currentProposal.proposalId) == ProposalState.Defeated ||
-                state(currentProposal.proposalId) == ProposalState.Executed
-        );
+        if (currentProposal.proposalId != 0) {
+            require(isReadyToPropose());
+        }
+
         currentProposal.proposalId = super.propose(
             targets,
             values,
             calldatas,
             description
         );
+        currentProposal.targets = targets;
+        currentProposal.values = values;
+        currentProposal.calldatas = calldatas;
         currentProposal.description = keccak256(bytes(description));
         currentProposal.executionTime =
             block.timestamp +
             165 seconds +
             executionDelay;
+
         return currentProposal.proposalId;
     }
 
@@ -110,17 +113,44 @@ contract Governance is
         onlyAutomation
         returns (uint256)
     {
-        super.execute(targets, values, calldatas, descriptionHash);
+        return super.execute(targets, values, calldatas, descriptionHash);
+        // return currentProposal.proposalId;
+    }
+
+    function getProposalId() public view returns (uint256) {
         return currentProposal.proposalId;
     }
 
-    function getCurrentProposal() public view returns (CurrentProposal memory) {
-        return currentProposal;
+    function getExecutionTime() public view returns (uint256) {
+        return currentProposal.executionTime;
+    }
+
+    function getTargets() public view returns (address[] memory) {
+        return currentProposal.targets;
+    }
+
+    function getValues() public view returns (uint256[] memory) {
+        return currentProposal.values;
+    }
+
+    function getCalldatas() public view returns (bytes[] memory) {
+        return currentProposal.calldatas;
+    }
+
+    function getDescription() public view returns (bytes32) {
+        return currentProposal.description;
     }
 
     function isReadyToExecution() public view returns (bool) {
         return
             (state(currentProposal.proposalId) == ProposalState.Succeeded) ||
             (state(currentProposal.proposalId) == ProposalState.Queued);
+    }
+
+    function isReadyToPropose() public view returns (bool) {
+        return (state(currentProposal.proposalId) == ProposalState.Canceled ||
+            state(currentProposal.proposalId) == ProposalState.Defeated ||
+            state(currentProposal.proposalId) == ProposalState.Executed ||
+            state(currentProposal.proposalId) == ProposalState.Pending);
     }
 }
