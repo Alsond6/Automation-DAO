@@ -114,7 +114,6 @@ contract Governance is
         returns (uint256)
     {
         return super.execute(targets, values, calldatas, descriptionHash);
-        // return currentProposal.proposalId;
     }
 
     function getProposalId() public view returns (uint256) {

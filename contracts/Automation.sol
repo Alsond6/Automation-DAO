@@ -11,6 +11,8 @@ contract Automation is AutomationCompatibleInterface, Ownable {
 
     IGovernance.CurrentProposal public currentProposal;
 
+    event UpkeepPerformed(uint256 proposalId, bytes32 descirption);
+
     function setGovernance(address _governance) public onlyOwner {
         require(
             address(governance) == address(0),
@@ -50,5 +52,6 @@ contract Automation is AutomationCompatibleInterface, Ownable {
             governance.getCalldatas(),
             governance.getDescription()
         );
+        emit UpkeepPerformed(proposalId, governance.getDescription());
     }
 }

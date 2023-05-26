@@ -4,6 +4,9 @@ const networkConfig = {
     11155111: {
         name: "sepolia",
     },
+    80001: {
+        name: "mumbai",
+    },
 }
 
 const PARAM_TO = "0xC85C392654B161E9a16f8f8766Db5E75620dD276"
