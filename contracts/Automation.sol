@@ -1,5 +1,12 @@
 // SPDX-License-Identifier: MIT
 
+/**
+ * @title Automation contract for of execution process for the DAO
+ * @author Lruquaf ---> github.com/Lruquaf
+ * @notice this Chainlink Automation compatible contract executes
+ * a passed and ready proposal in Governance.sol automatically
+ */
+
 pragma solidity ^0.8.8;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
@@ -7,11 +14,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IGovernance.sol";
 
 contract Automation is AutomationCompatibleInterface, Ownable {
-    IGovernance public governance;
-
-    IGovernance.CurrentProposal public currentProposal;
+    IGovernance public governance; // address of governance contract
 
     event UpkeepPerformed(uint256 proposalId, bytes32 descirption);
+
+    /**
+     *
+     * @param _governance sets governance contract.
+     * @notice This function can be accessible by owner of this contract
+     */
 
     function setGovernance(address _governance) public onlyOwner {
         require(
@@ -20,6 +31,15 @@ contract Automation is AutomationCompatibleInterface, Ownable {
         );
         governance = IGovernance(_governance);
     }
+
+    /**
+     *
+     * @param "checkData" is not used
+     * @return upkeepNeeded is whether upkeep conditions are fulfilled or not
+     * @return performData is not used
+     * @notice checks whether the conditions for a proposal to execution are fulfilled or not
+     * @dev overrides interface AutomationCompatibleInterface.sol
+     */
 
     function checkUpkeep(
         bytes calldata /* checkData */
@@ -36,6 +56,13 @@ contract Automation is AutomationCompatibleInterface, Ownable {
             (governance.isReadyToExecution()) &&
             (executionTime <= block.timestamp);
     }
+
+    /**
+     *
+     * @param "performdata" is not used
+     * @dev overrides interface AutomationCompatibleInterface.sol
+     * @notice performs the execution of current proposal
+     */
 
     function performUpkeep(bytes calldata /* performData */) external override {
         uint256 proposalId = governance.getProposalId();
