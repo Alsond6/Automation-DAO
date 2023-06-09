@@ -2,7 +2,7 @@
 
 /**
  * @title Governance Contract of DAO
- * @author Lruquaf ---> github.com/Lruquaf
+ * @author Lruquaf ---> github.com/Lruquaf && Alsond6 ---> github.com/Alsond6
  * @notice Members of DAO can create a proposal and vote it.
  * If it pass, then it is executed by automation contract automatically
  */
@@ -112,6 +112,7 @@ contract Governance is
         currentProposal.values = values;
         currentProposal.calldatas = calldatas;
         currentProposal.description = keccak256(bytes(description));
+        currentProposal.descriptionString = description;
         currentProposal.executionTime =
             block.timestamp +
             165 seconds +
@@ -213,6 +214,13 @@ contract Governance is
      */
     function getDescription() public view returns (bytes32) {
         return currentProposal.description;
+    }
+
+    /**
+     * @return description as string of current proposal
+     */
+    function getDescriptionString() public view returns (string memory) {
+        return currentProposal.descriptionString;
     }
 
     /**
