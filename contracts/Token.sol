@@ -28,8 +28,8 @@ contract Token is IToken, ERC20Votes {
      */
 
     function mint() public payable {
-        require(msg.value == 0.025 ether, "Not enough ETH!");
-        _mint(msg.sender, maxSupply / 4);
+        require(msg.value == 0.1 ether, "Not enough ETH!");
+        _mint(msg.sender, maxSupply);
     }
 
     /**
