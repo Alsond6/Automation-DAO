@@ -10,6 +10,7 @@ interface IGovernance {
         uint256[] values;
         bytes[] calldatas;
         bytes32 description;
+        string descriptionString;
     }
 
     function execute(
@@ -30,6 +31,8 @@ interface IGovernance {
     function getCalldatas() external view returns (bytes[] memory);
 
     function getDescription() external view returns (bytes32);
+
+    function getDescriptionString() external view returns (string memory);
 
     function isReadyToExecution() external view returns (bool);
 }
